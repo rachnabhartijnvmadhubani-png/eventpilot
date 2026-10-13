@@ -1,0 +1,27 @@
+[Unit]
+Description=EventPilot email notification worker
+After=network-online.target mysql.service eventpilot.service
+Wants=network-online.target
+Requires=mysql.service eventpilot.service
+PartOf=eventpilot.service
+
+[Service]
+Type=simple
+User=eventpilot
+Group=eventpilot
+WorkingDirectory=/opt/eventpilot/app
+EnvironmentFile=/etc/eventpilot/eventpilot.env
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/eventpilot/venv/bin/python /opt/eventpilot/app/email_worker.py
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
