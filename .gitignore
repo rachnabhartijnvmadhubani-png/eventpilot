@@ -1,0 +1,43 @@
+# Secrets and local environment
+.env*
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend builds and installed dependencies
+node_modules/
+dist/
+build/
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Logs and local databases
+*.log
+*.sqlite
+*.db
+*.pem
+*.ppk
+*.key
+*.p12
+*.pfx
+*.sql.gz
+*.sql.bz2
+*.dump
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+credentials.json
+*-credentials.json
+*initial-login*.txt
