@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EventPilot · Events</title>
+  <link rel="stylesheet" href="style.css?v=20261012-5">
+  <script src="bootstrap.js?v=20261012-5" defer></script>
+  <script src="client.js?v=20261012-5" defer></script>
+  <script src="vendor/chart.umd.min.js?v=4.5.1" defer></script>
+  <script src="vendor/marked.min.js?v=15.0.12" defer></script>
+  <script src="vendor/purify.min.js?v=3.2.6" defer></script>
+  <script src="vendor/html5-qrcode.min.js?v=2.3.8" defer></script>
+  <script src="app.js?v=20261012-5" defer></script>
+  <script src="intelligence-ui.js?v=20261012-5" defer></script>
+</head>
+<body class="auth-mode">
+  <aside aria-label="Main navigation">
+    <h2>EventPilot</h2><p>PLAN · TRACK · ACT</p>
+    <nav id="nav"></nav>
+    <a href="attendee.html" target="_blank" rel="noopener" class="portal-link">Open attendee portal ↗</a>
+    <div class="account-identity"><strong id="organizationName"></strong><small id="organizerEmail"></small><button type="button" id="organizerLogout" class="secondary">Sign out</button></div>
+    <small class="sidebar-footer">Team gracebug</small>
+  </aside>
+  <main>
+    <header id="appHeader">
+      <div><small id="headerContext">ORGANIZER WORKSPACE</small><h1 id="title">Events</h1></div>
+      <div class="header-actions"><select id="events" aria-label="Switch event" hidden></select><button type="button" id="newEvent" disabled>Create event</button></div>
+    </header>
+    <div id="startupStatus" class="panel" role="status" aria-live="polite"><strong id="startupTitle">Loading EventPilot…</strong><p id="startupDetail">Preparing your events.</p><a href="/">Reload page</a></div>
+    <noscript><div class="panel">Enable JavaScript and reload to use EventPilot.</div></noscript>
+    <p id="error" role="alert"></p><p id="actionStatus" class="action-status" role="status" aria-live="polite"></p>
+    <div id="workspaceBar" class="workspace-bar" hidden>
+      <button type="button" id="backToEvents" class="secondary">← All events</button>
+      <div class="workspace-tabs" role="group" aria-label="Event workspace">
+        <button type="button" data-workspace="dashboard">Overview</button><button type="button" data-workspace="tasks">Plan</button><button type="button" data-workspace="registrations">People</button>
+      </div>
+      <div class="workspace-actions"><button type="button" id="startEvent" class="secondary">Start event</button><span id="eventStarted" class="started-badge" hidden>Started</span><button type="button" id="editEvent" class="secondary">Edit event</button><button type="button" id="openCopilot" class="secondary">Ask copilot</button><button type="button" id="archiveEvent" class="secondary">Archive</button></div>
+    </div>
+    <div id="archivePrompt" class="panel confirmation" hidden><p>Archive this event? It will leave the active list and attendee discovery. Its plan, registrations and history are kept.</p><div class="actions"><button type="button" id="confirmArchive">Archive event</button><button type="button" id="cancelArchive" class="secondary">Cancel</button></div></div>
+    <div id="startEventPrompt" class="panel confirmation" hidden><h3>Start this event?</h3><p>Mark the event as started and send a start update to its registered attendees. You can do this once. Registration, tasks and ticket history are kept.</p><div class="actions"><button type="button" id="confirmStartEvent">Start &amp; notify attendees</button><button type="button" id="cancelStartEvent" class="secondary">Cancel</button></div></div>
+    <section id="organizerAuth">
+      <div class="auth-layout">
+        <div class="auth-intro"><a class="auth-brand" href="/">EventPilot</a><h1>Your event.<br>One clear workspace.</h1><p>Create your organization, plan an event, and track its progress with your team.</p><div class="auth-steps"><span>1. Create an event</span><span>2. Follow the plan</span><span>3. See what to do next</span></div><a href="attendee.html">Looking for an event? Open the attendee portal ↗</a><small>Team gracebug</small></div>
+        <div class="panel auth-card">
+          <div class="auth-tabs" role="group" aria-label="Organization account"><button type="button" data-auth-tab="login" class="active">Sign in</button><button type="button" data-auth-tab="signup">Create organization</button></div>
+          <form id="organizationLogin" class="auth-form"><h2>Sign in to your organization</h2><label>Email address<input name="email" type="email" autocomplete="username" required maxlength="254"></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button type="submit">Sign in</button></form>
+          <form id="organizationSignup" class="auth-form" hidden><h2>Create your organization</h2><p>Your events and attendees stay in your organization’s workspace.</p><label>Organization name<input name="organization_name" autocomplete="organization" maxlength="120" required placeholder="Your organization name"></label><label>Email address<input name="email" type="email" autocomplete="username" maxlength="254" required></label><label>Password <small>(at least 6 characters)</small><input name="password" type="password" autocomplete="new-password" minlength="6" required></label><button type="submit">Create organization</button></form>
+          <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+    <section id="eventLibrary" hidden>
+      <div class="library-heading"><p id="libraryHint">Your organization’s events.</p><label class="checkbox-label"><input id="includeArchived" type="checkbox" disabled> Show archived</label></div>
+      <div id="eventCards" class="event-grid"></div>
+      <details id="demoControls" class="panel disclosure" hidden><summary>Try a fictional demo event</summary><p>Opens a fictional Delhi event with sample partners and metrics. If your organization has an active demo, it is reused. Your own events stay separate.</p><div id="demoCards" class="event-grid"></div><button type="button" id="demo" class="secondary">Load demo</button></details>
+    </section>
+    <section id="setup" hidden>
+      <article class="panel editor-panel"><h2 id="editorTitle">Create event</h2><p id="editorHelp">Start with the event brief. EventPilot generates the tasks, content calendar and operations checklist.</p>
+        <form id="create" class="form">
+          <label>Event name<input name="name" maxlength="200" required placeholder="Name of your event"></label>
+          <label>Event type<select name="type"><option>Hackathon</option><option>Webinar</option></select></label>
+          <label>Event date<input name="date" type="date" required></label>
+          <label>Format<select name="format"><option>Online</option><option>Offline</option><option>Hybrid</option></select></label>
+          <label>Audience<input name="audience" maxlength="200" required placeholder="Who is this event for?"></label>
+          <label>Target registrations<input name="target_regs" type="number" min="1" max="2147483647" required placeholder="Your target"></label>
+          <label id="venueField">Venue or joining link<input name="venue" maxlength="200" placeholder="Venue or online joining details"></label>
+          <label>Objectives<input name="objectives" maxlength="10000" placeholder="What should this event achieve?"></label>
+          <div id="briefTypeHint" class="field-help" hidden>Type and format are fixed after activity starts.</div>
+          <div class="actions"><button type="submit" id="saveEvent">Create event &amp; generate plan</button><button type="button" id="cancelEvent" class="secondary">Cancel</button></div>
+        </form>
+      </article>
+    </section>
+    <section id="dashboard" hidden>
+      <article id="eventOverview" class="panel event-overview" aria-label="Selected event overview" hidden></article>
+      <div class="overview-toolbar"><span id="snapshotStatus"></span><button type="button" id="refresh" class="secondary">Refresh</button></div>
+      <div id="dataNotice" class="notice" hidden></div><div id="planSummary" class="notice" hidden></div>
+      <div id="stats" class="stats"></div>
+      <div class="columns overview-focus"><article class="panel"><h3>What to do next</h3><p>Ranked by estimated impact, effort and urgency.</p><div id="recs"></div></article><article class="panel"><h3>Forecast &amp; readiness</h3><div id="forecast"></div></article></div>
+      <details class="panel disclosure" id="metricsDetails"><summary>Update live numbers</summary><p>Enter cumulative counts from outside the attendee portal. Portal registrations, confirmations and attendance are added automatically; leave them out here.</p>
+        <form id="metrics" class="form"><label>As of date<input name="date" type="date" required></label><label>Reach<input name="reach" type="number" value="0" min="0" required></label><label>Clicks<input name="clicks" type="number" value="0" min="0" required></label><label>Registrations<input name="registrations" type="number" value="0" min="0" required></label><label>Confirmations<input name="confirmations" type="number" value="0" min="0" required></label><label>Attendance<input name="attendance" type="number" value="0" min="0" required></label><div><button type="submit">Save numbers</button></div></form>
+      </details>
+      <details class="panel disclosure"><summary>Registration progress &amp; conversion</summary><div class="columns"><article><h3>Registrations against plan</h3><div class="chart-wrap"><canvas id="chart"></canvas></div></article><article><h3>Conversion funnel</h3><div id="funnel"></div></article></div></details>
+      <details class="panel disclosure"><summary>Health, timeline &amp; decision history</summary><h3>Event health</h3><div id="riskHeatmap" class="risk-grid"></div><h3>Latest action impact</h3><div id="impactCompare" class="impact-grid"></div><p>Task completion changes the simulated estimate. It does not add real registrations.</p><h3>Timeline</h3><div id="timelineRows"></div><h3>Decision history</h3><div id="decisionRows"></div><h3>Recommendation history</h3><div id="recommendationActionRows"></div></details>
+      <details class="panel disclosure" id="simulationControls"><summary>Simulation controls</summary><p>Explore a different date for planning and the demo. Actual attendee records stay unchanged.</p><div class="toolbar"><label>Simulation date<input id="date" type="date"></label><button type="button" id="resetDate" class="secondary">Use today</button><button type="button" id="escalate" class="secondary">Check overdue escalations</button></div></details>
+    </section>
+    <section id="tasks" hidden>
+      <article class="panel"><div class="section-heading"><div><h3>Event plan</h3><p>Generated from the event type, format and time remaining.</p></div><label>Owner role<select id="role"><option>All</option><option>Marketing</option><option>Partnerships</option><option>Operations</option><option>Programme</option><option>Leadership</option></select></label></div><div class="scroll"><table><thead><tr><th>Task</th><th>Role</th><th>Due</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead><tbody id="taskRows"></tbody></table></div></article>
+      <details class="panel disclosure"><summary>Content calendar</summary><div id="contentRows"></div></details>
+      <details class="panel disclosure"><summary>Partners &amp; operations</summary><div class="columns"><article><h3>Partner pipeline</h3><div id="partnerRows"></div><form id="partnerForm" class="inline-form"><label>Partner organization<input name="name" maxlength="200" required placeholder="Organization name"></label><button type="submit">Add partner</button></form></article><article><h3>Operations checklist</h3><div id="logisticRows"></div></article></div></details>
+      <details class="panel disclosure"><summary>Escalations</summary><p>Review overdue blockers and record a decision.</p><div id="escalationRows"></div></details>
+    </section>
+    <section id="registrations" hidden>
+      <article class="panel"><div class="section-heading"><div><h3>Attendees</h3><p id="attendeeSummary">Only attendees registered for this event appear here.</p></div><a id="eventPortalLink" href="attendee.html" target="_blank" rel="noopener">Open attendee portal ↗</a></div><div class="scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Registered</th><th>Check-in</th><th>Ticket</th></tr></thead><tbody id="attendeeRows"></tbody></table></div></article>
+      <div class="columns"><article class="panel"><h3>Check in a ticket</h3><form id="checkinForm" class="form"><label>Ticket code<input id="ticketCodeInput" name="ticket_code" required placeholder="Paste attendee ticket code"></label><div class="actions"><button type="submit">Verify &amp; check in</button><button type="button" id="startQrScanner" class="secondary">Scan QR with camera</button></div></form><p id="scanHelp">You can also read a QR image.</p><label>Choose a ticket QR image<input id="qrImage" type="file" accept="image/*"></label><div id="qrScanner" hidden></div><p id="opsMessage" role="status"></p></article>
+      <article class="panel"><h3>Post an event update</h3><p>Publishes on attendee dashboards and emails registered attendees.</p><form id="announcementForm" class="form"><label>Title<input name="title" maxlength="160" required></label><label>Message<textarea name="message" rows="4" required></textarea></label><div><button type="submit">Publish update</button></div></form><p id="announcementStatus" role="status"></p></article></div>
+      <details id="emailDelivery" class="panel disclosure"><summary>Email delivery</summary><p>Registration, event-start, update, check-in, task and advice emails are saved for delivery. A saved event action stays complete even if email delivery fails.</p><div class="actions"><button type="button" id="refreshEmailDelivery" class="secondary">Refresh delivery status</button><button type="button" id="retryFailedEmails" class="secondary" disabled>Retry failed emails</button></div><p id="emailDeliverySummary" role="status"></p><div class="scroll"><table><thead><tr><th>Email</th><th>Recipient</th><th>Status</th><th>Last update</th><th>Detail</th></tr></thead><tbody id="emailDeliveryRows"></tbody></table></div></details>
+    </section>
+    <section id="account" hidden>
+      <article class="panel editor-panel"><h2>Organization account</h2><dl class="event-details"><div><dt>Organization</dt><dd id="profileOrganization"></dd></div><div><dt>Email</dt><dd id="profileEmail"></dd></div></dl><p>Send your organization details to the account email address.</p><button type="button" id="emailOrganization" class="secondary">Email my organization details</button><p id="organizationEmailStatus" role="status"></p></article>
+      <article class="panel editor-panel"><h3>Change password</h3><form id="changeOrganizationPassword" class="form"><label>Current password<input name="current_password" type="password" autocomplete="current-password" required></label><label>New password <small>(at least 6 characters)</small><input name="new_password" type="password" autocomplete="new-password" minlength="6" required></label><div><button type="submit">Update password</button></div></form><p id="passwordMessage" role="status"></p></article>
+    </section>
+    <section id="ai" class="ai-section" hidden>
+      <div class="chat-shell"><div class="chat-header"><div><h2>Event copilot</h2><p>Optional advice based on the selected event.</p></div><button type="button" id="newChat" class="secondary">New chat</button></div><div class="copilot-prompts"><button type="button" class="secondary" data-copilot-prompt="What are the three most useful actions for this event right now? Explain why.">What should we do next?</button><button type="button" class="secondary" data-copilot-prompt="Explain the registration gap and suggest practical outreach steps using the recorded data.">Improve registrations</button><button type="button" class="secondary" data-copilot-prompt="Review the open tasks and blockers. Which should the team prioritize this week?">Review blockers</button></div><div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div><div class="chat-composer-wrap"><form id="ask" class="chat-composer"><textarea id="prompt" rows="2" placeholder="Ask about your event…" required></textarea><div class="composer-bottom"><span>Enter to send · Shift+Enter for a new line</span><button type="submit" id="sendButton">Send</button></div></form><p class="chat-disclaimer">Check advice before acting. Copilot does not change your event.</p></div></div>
+    </section>
+  </main>
+</body>
+</html>

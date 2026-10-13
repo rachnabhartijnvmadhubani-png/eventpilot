@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EventPilot · Attendee Portal</title>
+  <link rel="stylesheet" href="attendee.css?v=20261012-5">
+  <script src="bootstrap.js?v=20261012-5" defer></script>
+  <script src="client.js?v=20261012-5" defer></script>
+  <script src="vendor/qrcode.js?v=1.4.4" defer></script>
+  <script src="attendee.js?v=20261012-5" defer></script>
+</head>
+<body>
+  <header class="top"><a class="brand" href="attendee.html">✦ EventPilot</a><span>ATTENDEE PORTAL</span><button id="logout" class="quiet" hidden>Sign out</button></header>
+  <main>
+    <div id="startupStatus" class="card startup-status" role="status" aria-live="polite"><strong id="startupTitle">Loading EventPilot…</strong><p id="startupDetail">Preparing your attendee portal.</p><a href="attendee.html">Reload portal</a></div>
+    <noscript><div class="card">Enable JavaScript and reload to sign in and manage your registrations.</div></noscript>
+    <div id="eventContext" class="card event-context" hidden></div>
+    <section id="auth" class="auth-grid">
+      <div class="intro"><p class="eyebrow">YOUR EVENT SPACE</p><h1>Find your next<br><span>great experience.</span></h1><p>Discover events, register in a few steps, and keep your tickets and updates in one place.</p><div class="mini-stats"><div><b>One place</b><small>For your event details</small></div><div><b>Your account</b><small>Your registrations only</small></div></div></div>
+      <div class="card"><div class="tabs"><button class="tab active" data-auth-tab="login">Sign in</button><button class="tab" data-auth-tab="register">Create account</button></div>
+        <form id="loginForm" class="form"><h2>Welcome back</h2><label>Email address<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button class="primary">Sign in</button></form>
+        <form id="registerForm" class="form" hidden><h2>Create your account</h2><label>Full name<input name="name" autocomplete="name" required maxlength="120"></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><label>Password <small>(8+ characters)</small><input name="password" type="password" minlength="8" autocomplete="new-password" required></label><button class="primary">Create account</button></form>
+        <p id="authMessage" class="message" role="status"></p>
+      </div>
+    </section>
+    <section id="portal" hidden>
+      <div class="welcome"><div><p class="eyebrow">ATTENDEE HOME</p><h1>Hi, <span id="attendeeName">there</span> 👋</h1><p>Your tickets and event updates. Start updates, announcements and check-in notices are also emailed to your account.</p></div><div class="pill">Personal dashboard</div></div>
+      <div class="section-heading"><div><p class="eyebrow">DISCOVER</p><h2>Upcoming events</h2></div><span id="eventCount" class="count">0 events</span></div>
+      <div id="eventGrid" class="event-grid"></div>
+      <div class="section-heading"><div><p class="eyebrow">YOUR ACTIVITY</p><h2>My registrations</h2></div><button id="reload" class="quiet">Refresh</button></div>
+      <div id="registrationList" class="registration-list"></div>
+      <p id="portalMessage" class="message" role="status"></p>
+    </section>
+    <footer>EventPilot · Event details shown here are public. Your account shows only your own registrations.</footer>
+  </main>
+</body></html>
